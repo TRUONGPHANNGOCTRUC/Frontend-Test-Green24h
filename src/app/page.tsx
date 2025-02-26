@@ -14,17 +14,23 @@ const API_URL =
   API_KEY;
 
 export default function NewsApp() {
+  const [page, setPage] = useState(1);
   const [highlightedNews, setHighlightedNews] = useState([]);
   const [news, setNews] = useState([]);
-  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchNews = async (pageNumber = 1) => {
     try {
       const res = await axios.get(API_URL);
       const data = res.data.articles;
-
       setHighlightedNews(data.slice(0, 4));
-      setNews(data.slice((pageNumber - 1) * 20 + 4, pageNumber * 20 + 4));
+
+      const start = (pageNumber - 1) * 20 + 4;
+      const end = pageNumber * 20 + 4;
+      setNews(data.slice(start, end));
+
+      const totalNews = data.length - 4;
+      setTotalPages(Math.ceil(totalNews / 20));
     } catch (error) {
       console.error("Lỗi khi tải tin tức:", error);
     }
@@ -72,8 +78,16 @@ export default function NewsApp() {
         </div>
 
         {/* Phân trang */}
-        <div className="flex space-x-2 mt-8">
-          {[1, 2, 3, 4, 5, 6].map((num) => (
+        <div className="flex space-x-2 mb-4 items-center">
+          {page > 1 && (
+            <button
+              onClick={() => setPage(page - 1)}
+              className="px-4 py-2 bg-gray-200 rounded-md mr-4"
+            >
+              Previous
+            </button>
+          )}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
             <button
               key={num}
               className={`px-4 py-2 rounded-md font-semibold transition ${
@@ -86,6 +100,14 @@ export default function NewsApp() {
               Trang {num}
             </button>
           ))}
+          {page < totalPages && (
+            <button
+              onClick={() => setPage(page + 1)}
+              className="px-4 py-2 bg-gray-200 rounded-md ml-4"
+            >
+              Next
+            </button>
+          )}
         </div>
       </div>
     </div>
